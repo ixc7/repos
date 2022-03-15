@@ -1,42 +1,48 @@
 #!/usr/bin/env node
 
-import { request } from 'https'
+import https from 'https'
 
-const fetchResult = (q = '', url = ['/search/repositories', 'https://api.github.com']) => {
-  const endpoint = new URL(...url)
+
+
+const search = q => {
+  const endpoint = new URL('/search/repositories', 'https://api.github.com')
+  endpoint.searchParams.set('q', q)
   for (const i in {
     page: '1',
     per_page: '100',
     sort: 'stars',
     order: 'desc',
     accept: 'application/vnd.github.v3+json',
-    q
   }) {
     endpoint.searchParams.set(i, i.value)
   }
-  return request(endpoint.href, {
+
+  const req = https.request(endpoint.href, {
     headers: {
       'User-Agent': ''
     }
   })
-}
 
-export const search = q =>
-  new Promise((resolve, reject) => {
-    const req = fetchResult(q)
+  return new Promise((resolve, reject) => {
     req.on('response', res => {
       let acc = ''
       res.on('data', chunk => (acc += chunk.toString('utf8')))
-      res.on('end', () =>
+      res.on('end', () => {
         resolve(
-          JSON.parse(acc).items.map(({ full_name, description, default_branch }) => ({
+          JSON.parse(acc).items
+          .map(({ full_name, description, default_branch }) => ({
             full_name,
             description,
             default_branch
           }))
         )
-      )
+      })
     })
     req.on('error', e => reject(e))
     req.end()
   })
+
+}
+
+if (process.argv[2]) console.log(await search(process.argv[2]))
+else console.log('please enter a search term')
