@@ -37,7 +37,7 @@ export const search = (q, opts = {}) =>
         }
 
         resolve(
-          retItems.map(({ name, html_url, description, default_branch }) => {
+          retItems.map(({ name, html_url, description, default_branch, language }) => {
             const max = process.stdout.columns - 24 // '  description: ' (+ padding)
             const str = description ? description.slice(0, max).trim() : ''
             const arr = str.split(' ')
@@ -47,7 +47,8 @@ export const search = (q, opts = {}) =>
               name,
               description: str.length === max ? `${trunc}...` : str,
               repository: html_url,
-              branch: default_branch
+              branch: default_branch,
+              language: language || ''
             }
           })
         )
